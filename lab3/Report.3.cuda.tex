@@ -1,0 +1,114 @@
+\documentclass[12pt]{article}%
+\usepackage{amsfonts}
+\usepackage{fancyhdr}
+\usepackage{comment}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.2cm, right=2.2cm]%
+{geometry}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{changepage}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}%
+\newenvironment{proof}[1][Proof]{\textbf{#1.} }{\ \rule{0.5em}{0.5em}}
+
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+
+
+\begin{document}
+
+\title{Report Labwork 3}
+\author{Trung Tran Minh}
+\date{\today}
+\maketitle
+
+
+
+
+\section{Load image}
+
+\begin{verbatim}
+img_src = "/content/drive/MyDrive/DATA/HPC/image.jpg"
+
+img=plt.imread(img_src, format=None)
+
+plt.imshow(img)
+
+plt.show()
+\end{verbatim}
+
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{load_img.png}
+    \caption{Load 320x320 image}
+\end{figure}
+
+\section{Flatten image}
+
+Shape of flattened image: (190404, 3)
+
+
+\newpage
+\section{Grayscale}
+
+\begin{verbatim}
+@cuda.jit
+
+def grayscale_gpu(src, dst):
+
+  tidx = cuda.threadIdx.x + cuda.blockIdx.x * cuda.blockDim.x
+  
+  g = np.uint8((src[tidx, 0] + src[tidx, 1] + src[tidx, 2]) / 3)
+  
+  dst[tidx, 0] = dst[tidx, 1] = dst[tidx, 2] = g
+\end{verbatim}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{image_cpu.png}
+\end{figure}
+
+\newpage
+And grayscale for cpu:
+\begin{verbatim}
+def grayscale_cpu(image):
+    gray_image = np.zeros_like(image)
+
+    for i in range(image.shape[0]):
+    
+        for j in range(image.shape[1]):
+        
+            avg = np.mean(image[i, j])
+            
+            gray_image[i, j] = [avg, avg, avg]
+            
+    return gray_image
+\end{verbatim}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{image_gpu.png}
+\end{figure}
+
+\subsection {Result}
+
+\begin{table}[h]
+    \centering
+    \label{tab:grayscale-result}
+    \begin{tabular}{ccc}
+        \toprule
+        \textbf{CPU} & \textbf{GPU} \\
+        \midrule
+        1.3464 second & 0.0004 second \\
+        \bottomrule
+    \end{tabular}
+    \caption{Execution time of grayscale conversion}
+\end{table}
+
+\end{document}
